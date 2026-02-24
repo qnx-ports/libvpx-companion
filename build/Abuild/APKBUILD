@@ -1,0 +1,70 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libvpx
+pkgver=1.15.2
+pkgrel=1
+pkgdesc="Library for the vp8/vp9 codecs"
+url="https://www.webmproject.org/"
+arch="all"
+license="BSD-3-Clause"
+depends="libc++"
+makedepends="nasm bash perl diffutils clang libc++-dev"
+subpackages="$pkgname-dev $pkgname-utils"
+source="https://github.com/webmproject/libvpx/archive/v$pkgver/libvpx-v$pkgver.tar.gz
+    "
+
+build() {
+    # instricts
+    if [[ $CARCH == "x86_64" ]]; then
+        _simd=""
+    elif [[ $CARCH == "aarch64" ]]; then
+        _simd="--enable-neon"
+    else
+        die "$CARCH not supported"
+    fi
+
+    # Prefer Clang over GCC on C++ projects
+    _no_warn_flags="-Wno-implicit-function-declaration"
+    CC=clang \
+    CXX=clang++ \
+    CFLAGS="$CFLAGS -O2 $_no_warn_flags" \
+    CXXFLAGS="$CXXFLAGS -O2 $_no_warn_flags" \
+    ./configure \
+        --prefix=/usr \
+        --disable-install-srcs \
+        --disable-static \
+        --disable-runtime-cpu-detect \
+        --enable-libs \
+        --enable-multithread \
+        --enable-pic \
+        --enable-postproc \
+        --enable-shared \
+        --enable-temporal-denoising \
+        --enable-unit-tests \
+        --enable-vp8 \
+        --enable-vp9 \
+        --enable-vp9-highbitdepth \
+        --enable-vp9-postproc \
+        --enable-vp9-temporal-denoising \
+        $_simd
+    make
+}
+
+check() {
+    # speed up
+    LD_LIBRARY_PATH="$builddir:$LD_LIBRARY_PATH"\
+    make test -j$(nproc)
+}
+
+package() {
+    make DESTDIR="$pkgdir" install
+}
+
+utils() {
+    pkgdesc="$pkgdesc (tools)"
+
+    amove usr/bin
+}
+
+sha512sums="
+824fe8719e4115ec359ae0642f5e1cea051d458f09eb8c24d60858cf082f66e411215e23228173ab154044bafbdfbb2d93b589bb726f55b233939b91f928aae0  libvpx-v1.15.2.tar.gz
+"
