@@ -1,7 +1,7 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 pkgname=libvpx
 pkgver=1.15.2
-pkgrel=1
+pkgrel=${pkgrel:-0}
 pkgdesc="Library for the vp8/vp9 codecs"
 url="https://www.webmproject.org/"
 arch="all"
@@ -65,6 +65,7 @@ utils() {
     amove usr/bin
 }
 
+options="$options ${DISABLE_CHECK:+!check}"
 sha512sums="
 824fe8719e4115ec359ae0642f5e1cea051d458f09eb8c24d60858cf082f66e411215e23228173ab154044bafbdfbb2d93b589bb726f55b233939b91f928aae0  libvpx-v1.15.2.tar.gz
 "
